@@ -1,7 +1,20 @@
 #define IX(i,j,k) ((i)+(M+2)*(j) + (M+2)*(N+2)*(k))
+#define MAX(a,b)  (((a) > (b)) ? (a) : (b))
+#define SIZE 34
+
+#define IX(i,j,k) ((i)+(M+2)*(j) + (M+2)*(N+2)*(k))
 #define SWAP(x0,x) {float * tmp=x0;x0=x;x=tmp;}
 #define MAX(a,b)            (((a) > (b)) ? (a) : (b))
 #define LINEARSOLVERTIMES 10
+
+int M=SIZE; // grid x
+int N=SIZE; // grid y
+int O=SIZE; // grid z
+
+int addforce[3] = {0, 0, 0};
+int addsource = 0;
+float * u, * v, *w, * u_prev, * v_prev, * w_prev;
+float * dens, * dens_prev;
 
 void add_source ( int M, int N, int O, float * x, float * s, float dt )
 {
@@ -69,7 +82,7 @@ void advect (  int M, int N, int O, int b, float * d, float * d0, float * u, flo
 {
 	int i, j, k, i0, j0, k0, i1, j1, k1;
 	float x, y, z, s0, t0, s1, t1, u1, u0, dtx,dty,dtz;
-	
+
 	dtx=dty=dtz=dt*MAX(MAX(M, N), MAX(N, O));
 
 	for ( i=1 ; i<=M ; i++ ) { for ( j=1 ; j<=N ; j++ ) { for ( k=1 ; k<=O ; k++ ) {
@@ -82,7 +95,7 @@ void advect (  int M, int N, int O, int b, float * d, float * d0, float * u, flo
 		d[IX(i,j,k)] = s0*(t0*u0*d0[IX(i0,j0,k0)]+t1*u0*d0[IX(i0,j1,k0)]+t0*u1*d0[IX(i0,j0,k1)]+t1*u1*d0[IX(i0,j1,k1)])+
 			s1*(t0*u0*d0[IX(i1,j0,k0)]+t1*u0*d0[IX(i1,j1,k0)]+t0*u1*d0[IX(i1,j0,k1)]+t1*u1*d0[IX(i1,j1,k1)]);
 	}}}
-    
+
     set_bnd (M, N, O, b, d );
 }
 
@@ -93,8 +106,8 @@ void project ( int M, int N, int O, float * u, float * v, float * w, float * p, 
 	for ( i=1 ; i<=M ; i++ ) { for ( j=1 ; j<=N ; j++ ) { for ( k=1 ; k<=O ; k++ ) {
 		div[IX(i,j,k)] = -1.0/3.0*((u[IX(i+1,j,k)]-u[IX(i-1,j,k)])/M+(v[IX(i,j+1,k)]-v[IX(i,j-1,k)])/M+(w[IX(i,j,k+1)]-w[IX(i,j,k-1)])/M);
 		p[IX(i,j,k)] = 0;
-	}}}	
-	
+	}}}
+
 	set_bnd ( M, N, O, 0, div ); set_bnd (M, N, O, 0, p );
 
 	lin_solve ( M, N, O, 0, p, div, 1, 6 );
@@ -104,7 +117,7 @@ void project ( int M, int N, int O, float * u, float * v, float * w, float * p, 
 		v[IX(i,j,k)] -= 0.5f*M*(p[IX(i,j+1,k)]-p[IX(i,j-1,k)]);
 		w[IX(i,j,k)] -= 0.5f*M*(p[IX(i,j,k+1)]-p[IX(i,j,k-1)]);
 	}}}
-	
+
 	set_bnd (  M, N, O, 1, u ); set_bnd (  M, N, O, 2, v );set_bnd (  M, N, O, 3, w);
 }
 
